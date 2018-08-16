@@ -9,6 +9,7 @@
 	<configs>
 		<config>src/resources/spring/knight.xml</config>
 		<config>src/resources/spring/Minstrel.xml</config>
+		<config>src/com/springinaction/beanwireing/CDPlayerConfig.xml</config>
 	</configs>
 	<autoconfigs>
 	</autoconfigs>
