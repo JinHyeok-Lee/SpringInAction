@@ -10,6 +10,8 @@
 		<config>src/resources/spring/knight.xml</config>
 		<config>src/resources/spring/Minstrel.xml</config>
 		<config>src/com/springinaction/beanwireing/CDPlayerConfig.xml</config>
+		<config>src/resources/spring/JdbcDatasource.xml</config>
+		<config>src/resources/spring/MutifulDatasourceProfile.xml</config>
 	</configs>
 	<autoconfigs>
 	</autoconfigs>
