@@ -161,7 +161,7 @@ public class ComplexDataSourceConfig {
 
 #### XML로 프로파일 설정하기
 
-또한 < bean > 요소의 profile 애트리뷰트를 설정하여 XML로 프로파일된 빈을 설정할 수는 있다. 예를 들어 XML 개발을 위한 임베디드 데이터베이스의 DataSource 빈을 정의하려면 다음과 같이 XML 파일을 만들 수 있다.
+또한 `<bean>` 요소의 profile 애트리뷰트를 설정하여 XML로 프로파일된 빈을 설정할 수는 있다. 예를 들어 XML 개발을 위한 임베디드 데이터베이스의 DataSource 빈을 정의하려면 다음과 같이 XML 파일을 만들 수 있다.
 
 ```xml
 
@@ -174,7 +174,7 @@ public class ComplexDataSourceConfig {
 
 마찬가지로 제품 수준의 JNDI로 얻은 DataSource 빈을 위해 profile을 prod로 설정하여 다른 설정 파일을 만들 수 있다. 그리고 QA프로파일에 의해 지정된 연결 풀 정의 DataSource 빈의 또다른 XML 파일을 만들 수 있다.
 
-모든 설정 XML 파일은 배치 유닛에 수집되지만 오직 profile 애트리뷰트는 사용될 활성 프로파일에 매칭된다. 오히려 각각의 환경에서 XML파일이 확대되도록 만드는 것보다 루트 < beans > 요소에 포함된 < beans > 요소를 정의하는 옵션을 사용한다.
+모든 설정 XML 파일은 배치 유닛에 수집되지만 오직 profile 애트리뷰트는 사용될 활성 프로파일에 매칭된다. 오히려 각각의 환경에서 XML파일이 확대되도록 만드는 것보다 루트 `<beans>` 요소에 포함된 `<beans>` 요소를 정의하는 옵션을 사용한다.
 
 ``` xml
 
@@ -423,4 +423,290 @@ public class ProfileCondition implements Condition{
 
 ```
 
-보다시피 ProfileCOndition은 AnnotatedTypeMetadata에서 @Profile의 모든 애너테이션 애트리뷰트를 가져온다. 빈 프로파일의 미음리 포함되어 있는 value 애트리뷰트를 명시적으로 확인한다. 그 후 프로파일이 활성 상태인지 여부를 확인하기 위해 ConditionContext에서 가져온 Environment를 살펴본다.
+보다시피 ProfileCondition은 AnnotatedTypeMetadata에서 @Profile의 모든 애너테이션 애트리뷰트를 가져온다. 빈 프로파일의 미음리 포함되어 있는 value 애트리뷰트를 명시적으로 확인한다. 그 후 프로파일이 활성 상태인지 여부를 확인하기 위해 ConditionContext에서 가져온 Environment를 살펴본다.
+
+### 오토와이어링의 모호성
+
+2장에서 생성자의 인수와 프로퍼티에 빈 참조를 주입할 떄 스프링이 모든 작업을 수행하는 오토와이어링 사용 방법을 설명했다. 오토와이어링은 응용 프로그래밍 구성 요소를 조립하는 데 필요한 명시적 설정 양을 삼소시키므로 큰 도움이 된다.
+
+정확히 하나의 빈이 원하는 결과와 일치할 떄 오토와이어링은 동작한다. 일치하면 빈이 여럿있으면 모호성 때문에 스프링에서 프로퍼티, 생성자 인수, 메소드 파라미터의 오토와이어링은 어렵다.
+
+오토와이어링의 모호성을 나타내기 위해 @AUtowired를 가지는 다음 setDessert() 메소드가 에너테이션 됬다고 가정하자.
+
+```java
+
+@Autowired
+public void setDessert(Dessert dessert) {
+
+    this.dessert = dessert;
+}
+
+```
+
+이 예제에서 Dessert는 인터페이스이며 세 개의 클르스, 즉 Cake, Cookies 및 IceCream으로 구현 된다.
+
+```java
+
+@Component
+public class Cake implements { ... }
+
+@Component
+public class Cookies implements { ... }
+
+@Component
+public class IceCream implements { ... }
+
+```
+
+모든 세 개의 구현은 @Component으로 애너테이션되어 컴포넌트 스캐닝 중 찾을 수 있고, 스프링 애플리케이션 컨텍스트에서 빈으로 생성된다. 스프링이 SetDessert() 에서 Dessert 파라미터를 오토와이어링 할 때 하나의 명확한 대안이 있지는 않다. 대부분의 사람들이 여러 디저트 옵션에 직면했을 때 선택하는 것은 문제가 되지 않지만, 스프링은 선택할 수 없다. 스프링은 실패하고 예외를 발생시킨다. 정확하게는 스프링은 NoUniqueBeanDefinitionException을 발생시킨다.
+
+```java
+
+nested exception is org.springframework.beans.factory.NoUniqueBeanDefinitionException ....
+
+```
+
+물론 이 디저트를 먹는 예제에서 오토와이어링은 모호함 문제를 발생시킨다. 사실 모호성 오토와이러링은 기대 이상으로 드물다. 그런 모호함이 진짜 문제임에도 불구하고, 주어진 타입의 구현이 한 개만 있는 경우는 종종 있으며, 오토와이어링은 완벽하게 동작한다.
+
+모호함이 발생하지 않는 그 순간을 위해 스프링은 옵션 멱 가지를 제공한다. 기본적인 방법을 사용하여 후보 빈들 중 하나를 선택할 수 있으며, 스프링에서 단일 후보로 선택을 좁히기 위해서 한정자를 사용한다.
+
+#### 기본 빈 설정
+
+만약에 당신이 나와 비슷하다면, 모든 종류의 디저트르 좋아할 것이다. 케이크 ... 쿠키 ... 아이스크림 ... 모두 좋다. 하지만 하나의 디저트를 고르도록 강제된 경우는 어떻게 할까?
+
+빈 선언 시, 기본 빈으로 후보 빈 중 하나를 지정하여 오토와이어링의 모호함을 피할 수 있다. 모든 모호성 이벤트에서 스프링은 여러 개의 후보 빈 중에서 주요 빈을 선택하며, 기본적으로 사용하가 "선호하는" 빈을 선언한다.
+
+아이스크림을 가장 좋아하는 디저트라고 하자. @Primary 애너테이션을 사용하여 스프링에서 그 맛 선택을 표현한다. @Primary는 컴포넌트 스캐닝 도니 빈을 위한 @Component와 자바 설정에서 선언된 빈의 @Bean을 함께 사용한다. 예를 들어, 여기에 주요 대안으로 @Component로 애너테이션된 @IceCream 빈을 선언하는 방법이 있다.
+
+```java
+
+@Component
+@Primary
+publuc class IceCream Implements Dessert { ... }
+
+```
+
+또는 자바 설정으로 명시적으로 IceCream 빈을 선언한다. @Bean 메소드는 다음과 같다.
+
+```java
+
+@Bean
+@Primary
+public Dessert iceCream() {
+
+    return new IceCream();
+}
+
+```
+
+XML로 빈을 설정하여, 기본 빈을 지정할 수 있다. `<bean>` 요소는 기본 빈을 지정하기 위해서 primary 애트리뷰트를 가진다.
+
+```xml
+
+<bean id="iceCream"
+      class="com.desserteater.IceCream"
+      primary="true" />
+
+```
+
+기본 빈을 어떻게 지정하든 효과는 동일하다. 모호함이 있으면 기본 빈을 선택해야 한다. 이 작업은 두 개 이사의 기본 빈을 지정할 때 활용된다. 예를 들어, Cake 클래스는 다음과 같다.
+
+```java
+
+@Component
+@Primary
+public class Cake implements Dessert { ... }
+
+```
+
+지금 두 가지 주요 Dessert 빈인 Cake와 IceCream이 있다. 이 때 새로운 모호성 문제가 제기된다. 새로운 모호성 때문에, 스프링에서 여로 후보 빈 중 선택이 어려우며, 여러 기본 빈 중에서도 선택이 마찬가지로 어렵다. 여러 개의 빈을 기본으로 지정하면 사실 기본 후보자는 없다.
+
+더 강력한 모호성을 가지는 메커니즘에 대응하기 위해 한정자(qualifier)를 살펴보자.
+
+#### 오토와이어링 빈의 자격
+
+기본 빈의 한계점은 @Primary가 하나의 명백한 옵션 선택을 하지 못한다는 점이다. 단지 바람직한 대안을 지정할 뿐이다. 여러 개의 기본이 있으면, 옵션을 줄이기 위해 할 수 있는 것이 없다.
+
+이와는 대조적으로 스프링의 수식은 결국 소정의 자격을 충족하는 모든 후보 빈에 적용되고, 단일 빈 대상으로 협소화 작업을 적용한다. 모든 한정자에 적용한 휴에도 모호함이 남아 있는 경우, 항상 새로운 범위를 좁히기 위해 다시 많은 수식자를 적용한다.
+
+@Qualifier 애너테이션은 수식자를 사용하는 주도니 방법이다. 그것은 주입 대상 빈을 지정할 주입 지점에서 @Autowired나 @Inject와 함께 적용된다. 예를 들어, 아이스크림 빈이 setDessert() 내로 주입되는지 확인하고 싶다고 하자.
+
+```java
+@Autowired
+@Qualifier("iceCream")
+public void setDessert(Dessert dessert) {
+
+    this.dessert = dessert;
+}
+
+```
+
+이것은 가장 간단한 형태의 전형적인 수식자의 예다. @Qualifier의 파라미터는 주입할 빈의 ID다. 모든 @Component로 애너테이션 된 클래스는 ID가 대문자로 시작하지 않는 클래스 명인 빈으로 만들어진다. @Qualifier("iceCream")은 컴포넌트 스캔 시, IceCream 클래스의 인스턴스를 만들 경우 생성 빈을 참조한다.
+
+사실, 이보다 더 많은 이야기가 있다, 더 정확히 말하면, @Qualifier("iceCream")은 수식으로 문자열 "iceCream"을 가지는 빈을 참조한다. 다른 수식자를 지정하지 못하는 경우에, 모든 빈은 그들의 빈 ID와 같은 기본 수식자를 부여받는다. 따라서 setDessert() 메소드는 수식으로 "iceCream"을 가진 빈이 주입된다. IceCream 클래스가 스캔될 떄, ID가 iceCream인 빈이 생성된다.
+
+기본적인 빈 ID 수식자 자격은 간단하지만 몇 가지 문제를 제기한다. IceCream 이름을 Gelato로 변경하거나 IceCream 클래스를 리팩토링하면 어떻게 될까? 그 경우, 빈의 ID 및 기본 수식자로 gelato이며, setDessert() 에서 수식자와 일치하지 않는다. 따라서 오토와이어링은 실패한다.
+
+문제는 주입되는 빈의 클래스 명에 연결되어 있는 setDessert() 에 수식자가 지정되어 있다는 점이다, 클래스 이름을 변경하면 수식자는 잘못된 것으로 렌터링 된다.
+
+##### 맞춤식 수식자 만들기
+
+수식자를 빈 ID에 의존하는 대신, 빈에 자신의 수식자를 지정한다. 사용자가 해야 할 것은 빈 선언에서 @Qualifier 애너테이션을 배치하는 것이다. 예를 들어, @Component 와 함께 적용한다.
+
+```java
+
+@Component
+@Qualifier("cold")
+public class IceCream implements Dessert { ... }
+
+```
+
+이 경우 cold 라는 수식자는 IceCream 빈에 할당된다, 클래스 명에 연결되어 있지 않으므로 사용자가 원하는 모든 오토와이어링의 끓어짐 없이 IceCream 클래스 명을 리팩토링한다. 주입지점에서 cold 수식자를 참조하는 한 문제는 발생하지 않는다.
+
+```java
+
+@Autowired
+@Qualifier("cold")
+public void setDessert(Dessert dessert) {
+
+    this.dessert = dessert;
+}
+
+```
+
+이것은 명시적으로 자바 설정을 가지고 빈을 정의할 때, @Qualifier를 @Bean 애터테이션과 함께 사용한다.
+
+```java
+
+@Bean
+@Qualifier("cold")
+public Dessert iceCream() {
+
+    return new IceCream();
+}
+
+```
+
+맞춤형 @Qualifier 값을 정의하는 경우, 그것은 오히려 어떤 이름을 사용하는 것보다 빈의 특성 또는 서술적 용어를 사용하는 것이 좋다. 이 경우에 "cold" 빈으로 IceCream 빈을 설명했다. 주입 지점에서 그것은 IceCream 을 묘사하는 표현인 "나에게 차가운 디저트를 주세요" 라고 읽는다. 마찬가지로 Cake는 "soft"로 묘사할 수 있고 Cookies는 "crispy"로 묘사할 수 있다.
+
+##### 맞춤형 수식자 에터테이션 정의하기
+
+한정자로 빈 ID에 기반을 두는 대신에, 빈에 할당할 수 있다. 그러나 이렇게 하더라도 여전히 일반적인 특성을 공유하는 여러 빈을 가지고 있는 경우에는 문제가 발생한다. 예를 들어, 새로운 Dessert 빈을 도입하면 어떻게 될지 상상해 보자.
+
+```java
+
+@Component
+@Qualifier("cold")
+public class Popsicle implements Dessert { ... }
+
+```
+
+이제 두 개의 "cold" 디저트를 가지고 있다. 다시 디저트 빈이 오토와이어링의 모호함에 직면한다. 하나의 빈에 대한 선택 범위를 좁힐 수식자가 필요하다.
+
+해결책은 양쪽의 주입 지점과 빈 정의에 다른 @Qualifier를 고정 시키는 방법을 사용하는 것이다. IceCream 클래스는 다음과 같이 된다.
+
+```java
+
+@Component
+@Qualifier("cold")
+@qualifier("creamy")
+public class IceCream implements Dessert { ... }
+
+```
+
+Popsicle 클래스는 다른 @Qualifier를 사용한다.
+
+```java
+
+@Component
+@Qualifier("cold")
+@Qualifier("fruity")
+public class Popsicle implements Dessert { ... }
+
+```
+
+주입 시, 다음과 같이 IceCream 으로 좁혀 간다.
+
+```java
+
+@Autowired
+@Qualifier("cold")
+@Qualifier("creamy")
+public void setDessert(Dessert dessert) {
+
+    this.dessert = dessert;
+}
+
+```
+
+작은 문제가 있다. 자바는 동일한 유형의 여러 애너테이션이 같은 항목에 반복될 수 없다. 계속 시도하면 컴파일러 오류가 발생한다. 하나의 선택에 오토와이어링 된 후보 리스트를 좁힐 수 있는 @Qualifier를 사용할 수 있는 방법은 없다.
+
+하지만 빈에 자격이 주어지고 특성을 표현하기 위해 사용자 지정 수식자 애너테이션을 작성한다. 그리고, 또한 해야 할 일로 @Qualifier를 사용하여 애너테이션해야 한다. @Qualifier("cold")를 사용하는 것이 아니라 다음과 같이 정의된 맞춤형 @Cold 애터네이션을 사용할 수 있다.
+
+```java
+
+@Target({ElementType.CONSTRUCTOR, ElementType.FIELD,
+         ElementType.METHOD, ElementType.TYPE})
+@Retention(Retentionpolicy.RUNTIME)
+@Qualifier
+public @interface Cold { }
+
+```
+
+마찬가지로 @Qualifier("creamy")의 교체로 새로은 @Creamy 애너테이션을 만들 수 있다.
+
+```java
+
+@Target({ElementType.CONSTRUCTOR, ElementType.FIELD,
+         ElementType.METHOD, ElementType.TYPE})
+@Retention(Retentionpolicy.RUNTIME)
+@Qualifier
+public @interface Creamy { }
+
+```
+
+그리고 마찬가지로 어디서든지 사용할 수 있는 @Soft, @Crispy 및 @Fruity 애너테이션을 만들수 있고, 그렇지 않으면 @Qualifier 애너테이션을 사용한다. @Qualifier 애너테이션을 사용하여 @Qualifier의 특성을 파악한다. 실제로 그 특성은 수식자 애너테이션을 가진다.
+
+이제 IceCream을 재방문하고, 다음과 같은 @Cold와 @Cream을 사용하여 애너테이션을 달 수 있다.
+
+```java
+
+@Component
+@Cold
+@Creamy
+public class IceCream implements Dessety { ... }
+
+```
+
+이와 유사하게 popsicle 클래스는 @Cold와 @Fruity로 애너테이션된다.
+
+```java
+
+@Component
+@Cold
+@Fruity
+public class Popsicle implements Dessety { ... }
+
+```
+
+마지막으로, 주입 시에 스펫을 만족시키기 위한 빈 대상 선택 범위를 좁히려면 수식자 애너테이션 조합을 사용한다. IceCream 빈을 엑세스하려면 serDessert() 메서드는 다음과 같이 애너테이션 된다.
+
+```java
+
+@Autowired
+@Cold
+@Creamy
+public void setDessert(Dessert dessert) {
+
+    this.dessert = dessert;
+}
+
+```
+
+사용자 지정 수식자 애너테이션을 정의하여, 자바 컴파일러에서 제한 없이 또는 불만 없이 여러 개의 수식자를 사용한다. 또한 맞춤혐 애너테이션은 @Qualifier 애너테이션을 사용하는 것과 문자열로 수식자를 지정하는 것보다 더 타입세이프(type-safe)하다.
+
+setDessert() 메서드를 자세히 살펴보고 그거싱 어떻게 애터네이션되는 지를 살펴보자. IceCream빈으로 오토와이어링 하는 메소드를 사용하고 있는지 명시적으로 이야기 해 보자대신 그 특성 @Cold와 @Creamy 를 사용하여 원하는 빈을 확인한다. 따라서 setDessert() 메서드는 어떤 특정 디저트 구현으로부터 분리된다. 이를 만족하면 어느 빈도 문제업다. Dessert 구현의 현재 선택으로 IceCream 빈이 단일 매칭 후보가 된다.
+
+이 절과 이전 절에서는 맞춤형 애너테이션에서 스프힝을 확장하는 몇 가지 방법을 검토했다. 맞춤형 조건부 애너테이션을 만들려면 새 애너테이션을 작성하고 @Conditional을 사용하여 애너테이션한다. 맞춤형 수식자 애너테이션을 만들기 위해 새 애너테이션을 작성하고 @Qualfier를 사용하여 애너테이션한다. 이 기술은 맞춤형 특수 목적의 애너테이션을 구성하고, 스프링의 애너테이션을 많이 사용한다.
+
+이제 다른 범위에 만들어진 빈을 선언할 수 있는 방법을 알아보자.

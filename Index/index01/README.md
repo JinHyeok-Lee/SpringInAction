@@ -178,7 +178,7 @@ Minstrel을 애스펙트로 바꾸려면 스프링 설정 파일의 하나로 �
 
 [예제](./../../sources/SpringInAction/src/resources/spring/minstrel.xml)  
 
-여기서 스프링의 aop 설정 네임스페이스를 사용하여 Minstrel빈이 애스펙트라고 선언한다. 먼저 Minstrel을 빈으로 선언한다 그런 다음 < aop:aspect > 요소에서 빈을 참조한다. 애스펙트를 더 정의해 보자면, embarkOnQuest() 메소드가 실행되기 전에 Minstrel의 singBeforeQuest() 메소드가 호출되어야 한다고 선언한다. 이것을 비포 어브바이스라고 부른다. 그리고 embarkOnQuest() 메소드가 실행한 후에 singAfterQuest() 메소드가 호출되어야 한다고 선언한다. 이것을 애프터 어드바이스라고 부른다. 양쪽 경우 모두 point-ref 애트리뷰트는 embark라는 이름의 포인트컷을 참조한다. 이 포인트컷은 앞에 있는 < pointcut > 요소에 어드바이스가 적용될 위치를 선택하는 expression 애트리뷰트와 함께 정의되어 있다. expression 구문은 AspectJ의 포인트컷 표현식언어다.  
+여기서 스프링의 aop 설정 네임스페이스를 사용하여 Minstrel빈이 애스펙트라고 선언한다. 먼저 Minstrel을 빈으로 선언한다 그런 다음 `<aop:aspect>` 요소에서 빈을 참조한다. 애스펙트를 더 정의해 보자면, embarkOnQuest() 메소드가 실행되기 전에 Minstrel의 singBeforeQuest() 메소드가 호출되어야 한다고 선언한다. 이것을 비포 어브바이스라고 부른다. 그리고 embarkOnQuest() 메소드가 실행한 후에 singAfterQuest() 메소드가 호출되어야 한다고 선언한다. 이것을 애프터 어드바이스라고 부른다. 양쪽 경우 모두 point-ref 애트리뷰트는 embark라는 이름의 포인트컷을 참조한다. 이 포인트컷은 앞에 있는 `<pointcut>` 요소에 어드바이스가 적용될 위치를 선택하는 expression 애트리뷰트와 함께 정의되어 있다. expression 구문은 AspectJ의 포인트컷 표현식언어다.  
 
 AspectJ나 AspectJ 포인트컷 표현식의 작성 바법을 자세히 모른다고 해도 걱정할 필요는 없다. 4장에서 스프링의 AOP에 대해 저 자세히 논의 하며 지금은 스프링으 BraveKinght가 원정을 떠나기 전과 후에 Minstrel의 singBeforeQuest()와 singAfterQuest() 메소드를 호출한다는 정도만 알아도 충분하다.
 
@@ -188,7 +188,7 @@ AspectJ나 AspectJ 포인트컷 표현식의 작성 바법을 자세히 모른�
 
 두 번째이면서 가장 중요한 점은 BraveKnight가 Minstrel을 명시적으로 호출하지 않아도 Minstrel이 BraveKnight에 적용된다는 사실이다. 실제로 BraveKnight는 Minstrel의 존재를 전혀 인식하지 못한다.  
 
-또한 중요한 것은 Minstrel을 애스펙트로 바꾸기 위해 몇 가지 스프링 마법을 사용했지만. 먼저 < bean >으로 선언되어애 한다는 사실이다. 여기서의 핵심은 종속 객체 주입 같은 다음 스프링 빈과 함꼐 수행 할 수 있는 스프링 애스팩트를 이용하면 무엇이든 가능하다는 점이다.  
+또한 중요한 것은 Minstrel을 애스펙트로 바꾸기 위해 몇 가지 스프링 마법을 사용했지만. 먼저 `<bean>`으로 선언되어애 한다는 사실이다. 여기서의 핵심은 종속 객체 주입 같은 다음 스프링 빈과 함꼐 수행 할 수 있는 스프링 애스팩트를 이용하면 무엇이든 가능하다는 점이다.  
 
 기사에 대해 노래하기 위해 애스펙트를 사용하는 일도 즐거울 수 있지만 스프링의 AOP는 더 실용적인 목적으로 사용된다. 나중에 보겠지만 스프링 AOP는 선언적 트랜잭션과 보안 등의 서비스를 제공하지 위해 도입한다.  
 
@@ -281,7 +281,7 @@ AnnotationConfigWebApplicationContext와 xmlWebApplicationContext는 8장에서 
 1. 스프링이 빈을 인스턴스화한다.
 2. 스프링이 값과 빈의 레퍼런스를 빈의 프로퍼티에 주입힌다.
 3. 빈이 BeanNameAware를 구현하면 스프링이 빈의 ID를 setBeanName() 메서드에 넘긴다.
-4. 빈이 BeanFactoryAware를 구현하면 setBeanFactory() 메서드를 호출하여 빈 팻토리 자체를 넘긴다.
+4. 빈이 BeanFactoryAware를 구현하면 setBeanFactory() 메서드를 호출하여 빈 팩토리 자체를 넘긴다.
 5. 빈이 ApplicationContextAware를 구현하면 스프링이 setApplicationContext() 메서드를 호출하고 둘러싼 애플리케이션 컨텍스트에 대한 참조를 넘긴다.
 6. 빈이 BeanPostProcessor 인터페이스를 구현하면 postProcessBeforeInitialization() 메소드를 호출한다.
 7. 빈이 InitializingBean 인터페이스를 구현하면 스프링은 afterPropertiesSet() 메소드를 호출한다. 마찬가지로 빈인 init-method와 함꼐 선언됐으면 지정한 초기화 메소드가 호출된다.
